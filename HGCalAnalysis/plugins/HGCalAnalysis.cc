@@ -195,6 +195,7 @@ class HGCalAnalysis : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one:
   std::string detector_;
   bool rawRecHits_;
 
+
   // ----------member data ---------------------------
 
   edm::EDGetTokenT<HGCRecHitCollection> recHitsEE_;
@@ -476,6 +477,7 @@ class HGCalAnalysis : public edm::one::EDAnalyzer<edm::one::WatchRuns, edm::one:
   std::vector<float> layerPositions_;
   std::vector<double> dEdXWeights_;
   std::vector<double> invThicknessCorrection_;
+  std::vector<int> layersToDisable_;
 
   // and also the magnetic field
   MagneticField const *aField_;
@@ -502,6 +504,7 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
       particleFilter_(iConfig.getParameter<edm::ParameterSet>("TestParticleFilter")),
       dEdXWeights_(iConfig.getParameter<std::vector<double>>("dEdXWeights")),
       invThicknessCorrection_({1. / 1.132, 1. / 1.092, 1. / 1.084}),
+      layersToDisable_(iConfig.getParameter<std::vector<int>>("disabledLayers")),
       pca_(new TPrincipal(3, "D")) {
   // now do what ever initialization is needed
   mySimEvent_ = new FSimEvent(particleFilter_);
@@ -1812,7 +1815,7 @@ int HGCalAnalysis::fillLayerCluster(const edm::Ptr<reco::CaloCluster> &layerClus
         //		  std::cout << " Multiplicity " <<
         // int(hit->energy()/mip)
         //<<std::endl;
-        if (pcavars[2] != 0)
+        if (pcavars[2] != 0 && find(layersToDisable_.begin(),layersToDisable_.end(),layer)==layersToDisable_.end())
           for (int i = 0; i < int(hit->energy() / mip); ++i) pca_->AddRow(pcavars);
       }
     }
@@ -1938,6 +1941,9 @@ void HGCalAnalysis::computeWidth(const reco::HGCalMultiCluster &cluster, math::X
     if (hfsize == 0) continue;
     unsigned int layer = recHitTools_.getLayerWithOffset(hf[0].first);
     if (layer > 28) continue;
+    if (find(layersToDisable_.begin(),layersToDisable_.end(),layer)!=layersToDisable_.end()) {
+            continue;
+    }
 
     for (unsigned int j = 0; j < hfsize; j++) {
       const DetId rh_detid = hf[j].first;
@@ -2026,7 +2032,7 @@ void HGCalAnalysis::doRecomputePCA(const reco::HGCalMultiCluster &cluster, math:
       pcavars[0] = recHitTools_.getPosition(rh_detid).x();
       pcavars[1] = recHitTools_.getPosition(rh_detid).y();
       pcavars[2] = recHitTools_.getPosition(rh_detid).z();
-      if (pcavars[2] != 0) {
+      if (pcavars[2] != 0 && find(layersToDisable_.begin(),layersToDisable_.end(),layer)==layersToDisable_.end()) {
         for (int i = 0; i < int(hit->energy() / mip); ++i) pca_->AddRow(pcavars);
       }
     }
