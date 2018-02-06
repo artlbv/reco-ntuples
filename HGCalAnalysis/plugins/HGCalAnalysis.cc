@@ -520,6 +520,7 @@ HGCalAnalysis::HGCalAnalysis(const edm::ParameterSet &iConfig)
   mySimEvent_ = new FSimEvent(particleFilter_);
 
   pcaHelper_.setdEdXWeights(dEdXWeights_);
+  pcaHelper_.disabledLayers_ = layersToDisable_;
 
   if (detector_ == "all") {
     recHitsEE_ = consumes<HGCRecHitCollection>(edm::InputTag("HGCalRecHit", "HGCEERecHits"));
@@ -1286,7 +1287,8 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
 
   // initialize eleID helper
   //eIDHelper_->eventInit(iEvent,iSetup);
-  pcaHelper_.fillHitMap(*recHitHandleEE,*recHitHandleFH,*recHitHandleBH);
+  //pcaHelper_.fillHitMap(*recHitHandleEE,*recHitHandleFH,*recHitHandleBH);
+  pcaHelper_.setHitMap(&hitmap_);
   pcaHelper_.setRecHitTools(&recHitTools_);
 
   for (unsigned int i = 0; i < multiClusters.size(); i++) {
