@@ -1290,6 +1290,10 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   pcaHelper_.setHitMap(&hitmap_);
 
   for (unsigned int i = 0; i < multiClusters.size(); i++) {
+
+    double pt = multiClusters[i].energy() / cosh(multiClusters[i].eta());
+    if (pt < 10) continue;
+
     int cl2dSeed = 0;
     std::set<int> layers;
     pca_.reset(new TPrincipal(3, "D"));
@@ -1299,11 +1303,9 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
 	 it != multiClusters[i].end(); it++) {
       if ((*it)->energy() > (*(it + cl2dSeed))->energy()) cl2dSeed = it - multiClusters[i].begin();
       cl2dIndices.push_back(cluster_index_);
-      int layer = fillLayerCluster(*it, true, i);
+      int layer = fillLayerCluster(*it, false, i);
       layers.insert(layer);
     }  // end of loop on layer clusters
-
-    double pt = multiClusters[i].energy() / cosh(multiClusters[i].eta());
 
     multiclus_eta_.push_back(multiClusters[i].eta());
     multiclus_phi_.push_back(multiClusters[i].phi());
