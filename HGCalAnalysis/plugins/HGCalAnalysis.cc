@@ -1286,10 +1286,8 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
   storedRecHits_.clear();
 
   // initialize eleID helper
-  //eIDHelper_->eventInit(iEvent,iSetup);
-  //pcaHelper_.fillHitMap(*recHitHandleEE,*recHitHandleFH,*recHitHandleBH);
-  pcaHelper_.setHitMap(&hitmap_);
   pcaHelper_.setRecHitTools(&recHitTools_);
+  pcaHelper_.setHitMap(&hitmap_);
 
   for (unsigned int i = 0; i < multiClusters.size(); i++) {
     int cl2dSeed = 0;
@@ -1327,7 +1325,6 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       pcaHelper_.storeRecHits(multiClusters[i]);
       pcaHelper_.pcaInitialComputation();
       pcaHelper_.computePCA(radius);
-      //pcaHelper_.computePCA(radius);
       if(!pcaHelper_.computePCA(radius)) continue;
       pcaHelper_.computeShowerWidth(radius);
       if(pcaHelper_.sigmaUU() < 0) continue;
@@ -1415,6 +1412,11 @@ void HGCalAnalysis::analyze(const edm::Event &iEvent, const edm::EventSetup &iSe
       multiclus_NLay_.push_back(layers.size());
     }
   }  // end of loop on multiclusters
+
+
+  // DO NOT PROCESS FURTHER
+  t_->Fill();
+  return;
 
   // Fills the additional 2d layers
   for (unsigned ic = 0; ic < nclus; ++ic) {
